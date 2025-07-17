@@ -1,0 +1,67 @@
+[1mdiff --git a/.idea/Nest b/.idea/Nest[m
+[1mdeleted file mode 100644[m
+[1mindex 3cdad8e..0000000[m
+[1m--- a/.idea/Nest[m
+[1m+++ /dev/null[m
+[36m@@ -1 +0,0 @@[m
+[31m-Nest[m
+\ No newline at end of file[m
+[1mdiff --git a/.idea/Spring b/.idea/Spring[m
+[1mdeleted file mode 100644[m
+[1mindex bdf1e0c..0000000[m
+[1m--- a/.idea/Spring[m
+[1m+++ /dev/null[m
+[36m@@ -1 +0,0 @@[m
+[31m-Spring[m
+\ No newline at end of file[m
+[1mdiff --git a/.idea/workspace.xml b/.idea/workspace.xml[m
+[1mindex c403852..4173236 100644[m
+[1m--- a/.idea/workspace.xml[m
+[1m+++ b/.idea/workspace.xml[m
+[36m@@ -4,13 +4,7 @@[m
+     <option name="autoReloadType" value="SELECTIVE" />[m
+   </component>[m
+   <component name="ChangeListManager">[m
+[31m-<<<<<<< HEAD[m
+     <list default="true" id="41a971f3-ad15-46f8-9e24-4f3eceb54fc4" name="변경" comment="" />[m
+[31m-=======[m
+[31m-    <list default="true" id="41a971f3-ad15-46f8-9e24-4f3eceb54fc4" name="변경" comment="">[m
+[31m-      <change beforePath="$PROJECT_DIR$/gitmain" beforeDir="false" afterPath="$PROJECT_DIR$/gitmain" afterDir="false" />[m
+[31m-    </list>[m
+[31m->>>>>>> Backend-stack[m
+     <option name="SHOW_DIALOG" value="false" />[m
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />[m
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />[m
+[36m@@ -31,11 +25,7 @@[m
+   "keyToString": {[m
+     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",[m
+     "RunOnceActivity.ShowReadmeOnStart": "true",[m
+[31m-<<<<<<< HEAD[m
+     "git-widget-placeholder": "Frontend-stack",[m
+[31m-=======[m
+[31m-    "git-widget-placeholder": "Backend-stack",[m
+[31m->>>>>>> Backend-stack[m
+     "ignore.virus.scanning.warn.message": "true",[m
+     "kotlin-language-version-configured": "true",[m
+     "last_opened_file_path": "C:/Users/mingu/OneDrive/바탕 화면/git",[m
+[36m@@ -63,11 +53,7 @@[m
+       <option name="number" value="Default" />[m
+       <option name="presentableId" value="Default" />[m
+       <updated>1752746368478</updated>[m
+[31m-<<<<<<< HEAD[m
+       <workItem from="1752746369645" duration="1503000" />[m
+[31m-=======[m
+[31m-      <workItem from="1752746369645" duration="1991000" />[m
+[31m->>>>>>> Backend-stack[m
+     </task>[m
+     <servers />[m
+   </component>[m
+[1mdiff --git a/gitmain b/gitmain[m
+[1mindex bf1dac0..1a4ac75 100644[m
+[1m--- a/gitmain[m
+[1m+++ b/gitmain[m
+[36m@@ -1 +1,2 @@[m
+[31m-git push origin main --force[m
+[32m+[m[32mmain file update[m
+[32m+[m[32mfront[m
+\ No newline at end of file[m
