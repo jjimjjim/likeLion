@@ -35,3 +35,15 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local env files (not to be committed) ###
+.env
+.env.*
+src/main/resources/application-local.properties
+src/main/resources/*.secrets.properties
+
+# spring-dotenv가 사용하는 기본 파일 경로(.env) 보안
+/.env
+
+# macOS
+.DS_Store
