@@ -77,19 +77,8 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
-        return "회원가입이 완료되었습니다.";
+        return "회원가입 완료";
     }
-
-//    public String login(UserLoginRequest request) {
-//        User user = userRepository.findById(request.getEmail()).orElse(null);
-//        if (user == null) {
-//            return "User not found";
-//        }
-//        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-//            return "Invalid password";
-//        }
-//        return "Login successful (Welcome, " + user.getNickname() + ")";
-//    }
 
     // 로그인
     public String login(UserLoginRequest request) {
