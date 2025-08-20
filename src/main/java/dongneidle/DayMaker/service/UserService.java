@@ -1,11 +1,13 @@
 package dongneidle.DayMaker.service;
 
 import dongneidle.DayMaker.DTO.UserLoginRequest;
+import dongneidle.DayMaker.DTO.AuthResponse;
 import dongneidle.DayMaker.DTO.UserRegisterRequest;
 import dongneidle.DayMaker.entity.User;
 import dongneidle.DayMaker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import dongneidle.DayMaker.util.JwtTokenProvider;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,58 +24,39 @@ public class UserService {
         -비밀번호 : 8자 이상 20자 미만이며 대소문자, 숫자, 특수문자를 각각 1개 이상 포함할것
      */
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-//    public String register(UserRegisterRequest request) {
-//        if (request.getEmail() == null || request.getEmail().isEmpty()) {
-//            return "이메일 형식이 올바르지 않습니다.";
-//        }
-//        if (request.getPassword() == null || request.getPassword().isEmpty()) {
-//            return "비밀번호: 8자 이상 20자 미만이며 대소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.";
-//        }
-//        if (request.getNickname() == null || request.getNickname().isEmpty()) {
-//            return "Nickname is required";
-//        }
-//        if (userRepository.existsById(request.getEmail())) {
-//            return "Email already exists";
-//        }
-//
-//        User user = User.builder()
-//                .email(request.getEmail())
-//                .password(passwordEncoder.encode(request.getPassword()))
-//                .nickname(request.getNickname())
-//                .build();
-//
-//        userRepository.save(user);
-//        return "User registered successfully";
-//    }
+    private final PasswordEncoder passwordEncoder;// Bean 주입
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 회원가입
     public String register(UserRegisterRequest request) {
+        String normalizedEmail = normalizeEmail(request.getEmail());
+        String rawPassword = request.getPassword();
+        String trimmedNickname = request.getNickname() == null ? null : request.getNickname().trim();
+
         // 이메일 형식 체크
-        if (!isValidEmail(request.getEmail())) {
+        if (!isValidEmail(normalizedEmail)) {
             return "이메일 형식이 올바르지 않습니다.";
         }
 
         // 비밀번호 형식 체크
-        if (!isValidPassword(request.getPassword())) {
+        if (!isValidPassword(rawPassword)) {
             return "비밀번호: 8자 이상 20자 미만이며 대소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.";
         }
 
         // 닉네임 길이 체크 (영한문 상관없이 3~10자)
-        if (!isValidNickname(request.getNickname())) {
+        if (!isValidNickname(trimmedNickname)) {
             return "닉네임: 3자 이상, 10자 미만이어야 합니다.";
         }
 
         // 이메일 중복 체크
-        if (userRepository.existsById(request.getEmail())) {
+        if (userRepository.existsById(normalizedEmail)) {
             return "이미 존재하는 이메일입니다.";
         }
 
         User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .nickname(request.getNickname())
+                .email(normalizedEmail)
+                .password(passwordEncoder.encode(rawPassword))
+                .nickname(trimmedNickname)
                 .build();
 
         userRepository.save(user);
@@ -81,15 +64,29 @@ public class UserService {
     }
 
     // 로그인
-    public String login(UserLoginRequest request) {
-        User user = userRepository.findById(request.getEmail()).orElse(null);
+    public AuthResponse login(UserLoginRequest request) {
+        String normalizedEmail = normalizeEmail(request.getEmail());
+        String rawPassword = request.getPassword();
+
+        if (normalizedEmail == null || normalizedEmail.isBlank() || rawPassword == null || rawPassword.isBlank()) {
+            return AuthResponse.builder().success(false).message("이메일 또는 비밀번호가 올바르지 않습니다.").build();
+        }
+
+        User user = userRepository.findById(normalizedEmail).orElse(null);
         if (user == null) {
-            return "이메일 정보가 맞지 않습니다.";
+            return AuthResponse.builder().success(false).message("이메일 또는 비밀번호가 올바르지 않습니다.").build();
         }
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return "비밀번호가 틀렸습니다.";
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            return AuthResponse.builder().success(false).message("이메일 또는 비밀번호가 올바르지 않습니다.").build();
         }
-        return "로그인 완료 (환영합니다, " + user.getNickname() + "님)";
+        String token = jwtTokenProvider.createToken(user.getEmail());
+        return AuthResponse.builder()
+                .success(true)
+                .message("로그인 완료 (환영합니다, " + user.getNickname() + "님)")
+                .token(token)
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .build();
     }
 
     // 이메일 정규식 검증
@@ -106,5 +103,11 @@ public class UserService {
     // 닉네임 길이 검증 (영한문 포함)
     private boolean isValidNickname(String nickname) {
         return nickname != null && nickname.length() >= 3 && nickname.length() < 10;
+    }
+
+    // 이메일 공백 제거 및 소문자 정규화
+    private String normalizeEmail(String email) {
+        if (email == null) return null;
+        return email.trim().toLowerCase();
     }
 }
