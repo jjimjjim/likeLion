@@ -361,5 +361,261 @@ public class GooglePlacesService {
         }
     }
 
+    // ===================== v1 Nearby: Parking =====================
+
+    /**
+     * 좌표/반경 기반 주차장 검색 (Places API v1 Nearby)
+     */
+    public List<ItineraryResponse.PlaceDto> searchNearbyParkingV1(double latitude,
+                                                                  double longitude,
+                                                                  int radiusMeters,
+                                                                  int maxResults) {
+        if (googleApiKey.isEmpty()) {
+            log.warn("Google API key not configured, returning empty list for parking");
+            return java.util.List.of();
+        }
+
+        try {
+            String url = V1_BASE + "/places:searchNearby";
+
+            // FieldMask: 필요한 필드만 요청
+            String fieldMask = String.join(",",
+                    "places.name",
+                    "places.displayName",
+                    "places.location",
+                    "places.formattedAddress",
+                    "places.rating",
+                    "places.userRatingCount",
+                    "places.googleMapsUri"
+            );
+
+            java.util.Map<String, Object> body = new java.util.HashMap<>();
+            body.put("includedTypes", java.util.List.of("parking"));
+            body.put("languageCode", "ko");
+            java.util.Map<String, Object> circle = new java.util.HashMap<>();
+            java.util.Map<String, Object> center = new java.util.HashMap<>();
+            center.put("latitude", latitude);
+            center.put("longitude", longitude);
+            circle.put("center", center);
+            circle.put("radius", radiusMeters);
+            java.util.Map<String, Object> locationRestriction = new java.util.HashMap<>();
+            locationRestriction.put("circle", circle);
+            body.put("locationRestriction", locationRestriction);
+            body.put("maxResultCount", Math.max(1, Math.min(maxResults, 50))); // v1 제한 보호
+            body.put("rankPreference", "DISTANCE");
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.add("X-Goog-Api-Key", googleApiKey);
+            headers.add("X-Goog-FieldMask", fieldMask);
+            headers.add("Content-Type", "application/json");
+
+            org.springframework.http.HttpEntity<java.util.Map<String, Object>> entity =
+                    new org.springframework.http.HttpEntity<>(body, headers);
+
+            org.springframework.http.ResponseEntity<java.util.Map> resp = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.POST,
+                    entity,
+                    java.util.Map.class
+            );
+
+            java.util.Map response = resp.getBody();
+            if (response == null) return java.util.List.of();
+
+            java.util.List<java.util.Map> places = (java.util.List<java.util.Map>) response.get("places");
+            if (places == null || places.isEmpty()) {
+                // 1차 실패 시 primaryTypes로 재시도
+                body.remove("includedTypes");
+                body.put("includedPrimaryTypes", java.util.List.of("parking"));
+                entity = new org.springframework.http.HttpEntity<>(body, headers);
+                resp = restTemplate.exchange(url, org.springframework.http.HttpMethod.POST, entity, java.util.Map.class);
+                response = resp.getBody();
+                if (response != null) {
+                    places = (java.util.List<java.util.Map>) response.get("places");
+                }
+            }
+            if (places == null || places.isEmpty()) {
+                // 2차 실패 시 레거시 NearbySearch로 폴백
+                return searchNearbyParkingLegacy(latitude, longitude, radiusMeters, maxResults);
+            }
+
+            java.util.List<ItineraryResponse.PlaceDto> results = new java.util.ArrayList<>();
+            for (java.util.Map p : places) {
+                // displayName
+                String display = null;
+                Object dn = p.get("displayName");
+                if (dn instanceof java.util.Map dm) {
+                    Object text = dm.get("text");
+                    if (text != null) display = text.toString();
+                }
+                // address
+                String addr = (String) p.get("formattedAddress");
+                // location
+                java.util.Map loc = (java.util.Map) p.get("location");
+                Double lat = loc != null ? safeDoubleObj(loc.get("latitude"), null) : null;
+                Double lng = loc != null ? safeDoubleObj(loc.get("longitude"), null) : null;
+                // rating
+                Double rating = safeDoubleObj(p.get("rating"), null);
+                // placeId 추출 (name은 places/{place_id})
+                String nameRes = (String) p.get("name");
+                String placeId = extractPlaceIdFromName(nameRes);
+
+                ItineraryResponse.PlaceDto dto = ItineraryResponse.PlaceDto.builder()
+                        .name(display)
+                        .category("PARKING")
+                        .address(addr)
+                        .latitude(lat)
+                        .longitude(lng)
+                        .rating(rating)
+                        .placeId(placeId)
+                        .imageUrl(null)
+                        .build();
+                results.add(dto);
+            }
+            return results;
+        } catch (Exception e) {
+            log.error("Error calling v1 Nearby parking: {}", e.getMessage());
+            // 예외 시 레거시로 폴백
+            return searchNearbyParkingLegacy(latitude, longitude, radiusMeters, maxResults);
+        }
+    }
+
+    public List<ItineraryResponse.PlaceDto> searchNearbyParkingV1(double latitude,
+                                                                  double longitude,
+                                                                  int radiusMeters,
+                                                                  int maxResults,
+                                                                  String languageCode,
+                                                                  String rankPreference) {
+        if (languageCode == null || languageCode.isBlank()) languageCode = "ko";
+        if (!"RELEVANCE".equals(rankPreference)) rankPreference = "DISTANCE";
+        if (googleApiKey.isEmpty()) {
+            log.warn("Google API key not configured, returning empty list for parking");
+            return java.util.List.of();
+        }
+        try {
+            String url = V1_BASE + "/places:searchNearby";
+            String fieldMask = String.join(",",
+                    "places.name","places.displayName","places.location","places.formattedAddress","places.rating","places.userRatingCount","places.googleMapsUri");
+            java.util.Map<String, Object> body = new java.util.HashMap<>();
+            body.put("includedTypes", java.util.List.of("parking"));
+            body.put("languageCode", languageCode);
+            java.util.Map<String, Object> circle = new java.util.HashMap<>();
+            java.util.Map<String, Object> center = new java.util.HashMap<>();
+            center.put("latitude", latitude);
+            center.put("longitude", longitude);
+            circle.put("center", center);
+            circle.put("radius", radiusMeters);
+            java.util.Map<String, Object> locationRestriction = new java.util.HashMap<>();
+            locationRestriction.put("circle", circle);
+            body.put("locationRestriction", locationRestriction);
+            body.put("maxResultCount", Math.max(1, Math.min(maxResults, 50)));
+            body.put("rankPreference", rankPreference);
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.add("X-Goog-Api-Key", googleApiKey);
+            headers.add("X-Goog-FieldMask", fieldMask);
+            headers.add("Content-Type", "application/json");
+
+            org.springframework.http.HttpEntity<java.util.Map<String, Object>> entity =
+                    new org.springframework.http.HttpEntity<>(body, headers);
+
+            org.springframework.http.ResponseEntity<java.util.Map> resp = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.POST,
+                    entity,
+                    java.util.Map.class
+            );
+
+            java.util.Map response = resp.getBody();
+            java.util.List<java.util.Map> places = response != null ? (java.util.List<java.util.Map>) response.get("places") : null;
+            if (places == null || places.isEmpty()) {
+                return searchNearbyParkingLegacy(latitude, longitude, radiusMeters, maxResults);
+            }
+            java.util.List<ItineraryResponse.PlaceDto> results = new java.util.ArrayList<>();
+            for (java.util.Map p : places) {
+                String display = null;
+                Object dn = p.get("displayName");
+                if (dn instanceof java.util.Map dm) {
+                    Object text = dm.get("text");
+                    if (text != null) display = text.toString();
+                }
+                String addr = (String) p.get("formattedAddress");
+                java.util.Map loc = (java.util.Map) p.get("location");
+                Double lat = loc != null ? safeDoubleObj(loc.get("latitude"), null) : null;
+                Double lng = loc != null ? safeDoubleObj(loc.get("longitude"), null) : null;
+                Double rating = safeDoubleObj(p.get("rating"), null);
+                String nameRes = (String) p.get("name");
+                String placeId = extractPlaceIdFromName(nameRes);
+                results.add(ItineraryResponse.PlaceDto.builder()
+                        .name(display)
+                        .category("PARKING")
+                        .address(addr)
+                        .latitude(lat)
+                        .longitude(lng)
+                        .rating(rating)
+                        .placeId(placeId)
+                        .imageUrl(null)
+                        .build());
+            }
+            return results;
+        } catch (Exception e) {
+            log.error("Error calling v1 Nearby parking (extended): {}", e.getMessage());
+            return searchNearbyParkingLegacy(latitude, longitude, radiusMeters, maxResults);
+        }
+    }
+
+    private String extractPlaceIdFromName(String nameResource) {
+        if (nameResource == null) return null;
+        int idx = nameResource.lastIndexOf('/');
+        return idx >= 0 ? nameResource.substring(idx + 1) : nameResource;
+    }
+
+    /**
+     * 레거시 NearbySearch를 사용한 주차장 검색 폴백 (필터 완화)
+     */
+    private List<ItineraryResponse.PlaceDto> searchNearbyParkingLegacy(double latitude,
+                                                                       double longitude,
+                                                                       int radiusMeters,
+                                                                       int maxResults) {
+        try {
+            String url = String.format(
+                    "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=%f,%f&radius=%d&type=parking&key=%s&language=ko",
+                    latitude, longitude, radiusMeters, googleApiKey
+            );
+            log.info("Fallback Legacy Nearby parking: {}", url.replace(googleApiKey, "***"));
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            if (response == null || response.get("results") == null) return java.util.List.of();
+            List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
+            java.util.List<ItineraryResponse.PlaceDto> out = new java.util.ArrayList<>();
+            for (Map<String, Object> r : results) {
+                try {
+                    Map<String, Object> geometry = (Map<String, Object>) r.get("geometry");
+                    Map<String, Object> location = geometry != null ? (Map<String, Object>) geometry.get("location") : null;
+                    String placeId = (String) r.get("place_id");
+                    String name = (String) r.get("name");
+                    String addr = (String) r.get("vicinity");
+                    Double lat = location != null ? safeDoubleObj(location.get("lat"), null) : null;
+                    Double lng = location != null ? safeDoubleObj(location.get("lng"), null) : null;
+                    Double rating = safeDoubleObj(r.get("rating"), null);
+                    out.add(ItineraryResponse.PlaceDto.builder()
+                            .name(name)
+                            .category("PARKING")
+                            .address(addr)
+                            .latitude(lat)
+                            .longitude(lng)
+                            .rating(rating)
+                            .placeId(placeId)
+                            .imageUrl(null)
+                            .build());
+                    if (out.size() >= maxResults) break;
+                } catch (Exception ignore) {}
+            }
+            return out;
+        } catch (Exception e) {
+            log.error("Legacy Nearby parking failed: {}", e.getMessage());
+            return java.util.List.of();
+        }
+    }
+
 }
 

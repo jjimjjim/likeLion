@@ -1,0 +1,8 @@
+# Docker build context ignore
+.git
+.gradle
+build/
+**/*.iml
+**/.idea
+**/.vscode
+
