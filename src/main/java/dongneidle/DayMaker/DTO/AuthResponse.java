@@ -12,6 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class AuthResponse {
+    //인증 요청
 	private boolean success;// JWT 또는 세션 토큰 생성 성공 여부
 	private String message;// 성공/실패 메시지
 	private String token;// JWT 또는 세션 토큰

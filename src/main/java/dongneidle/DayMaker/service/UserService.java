@@ -3,6 +3,7 @@ package dongneidle.DayMaker.service;
 import dongneidle.DayMaker.DTO.UserLoginRequest;
 import dongneidle.DayMaker.DTO.AuthResponse;
 import dongneidle.DayMaker.DTO.UserRegisterRequest;
+import dongneidle.DayMaker.DTO.UserProfileResponse;
 import dongneidle.DayMaker.entity.User;
 import dongneidle.DayMaker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -84,6 +85,17 @@ public class UserService {
                 .success(true)
                 .message("로그인 완료 (환영합니다, " + user.getNickname() + "님)")
                 .token(token)
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .build();
+    }
+
+    // 프로필 조회
+    public UserProfileResponse getProfileByEmail(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        User user = userRepository.findById(normalizedEmail).orElse(null);
+        if (user == null) return null;
+        return UserProfileResponse.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .build();
