@@ -35,14 +35,13 @@ dependencies {
 	// JPA 의존성 추가 (필수)
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-	// H2 데이터베이스 (개발용)
-	runtimeOnly 'com.h2database:h2'
+	// H2 데이터베이스 제거 (로컬도 MySQL 사용)
+
+	// MySQL 커넥터 (운영/배포용)
+	runtimeOnly 'com.mysql:mysql-connector-j'
 
 	// OpenAI GPT API 클라이언트
 	implementation 'com.theokanning.openai-gpt3-java:service:0.18.2'
-
-	// .env 자동 로딩 (Spring Boot와 통합)
-	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 
 	// JWT (토큰 발급/검증)
 	implementation 'com.auth0:java-jwt:4.4.0'

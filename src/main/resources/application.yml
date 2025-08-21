@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: DayMaker
+  profiles:
+    default: local

@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/daymaker?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8}
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: root
+    password: Daymaker1234@
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+google:
+  api:
+    key: "${GOOGLE_MAPS_API_KEY}"
+
+openai:
+  api:
+    key: "${OPENAI_API_KEY}"
+    model: gpt-3.5-turbo

@@ -47,3 +47,6 @@ src/main/resources/*.secrets.properties
 
 # macOS
 .DS_Store
+
+
+application-local.yml
