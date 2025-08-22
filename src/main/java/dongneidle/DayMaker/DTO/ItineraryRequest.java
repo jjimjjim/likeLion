@@ -31,6 +31,7 @@ public class ItineraryRequest {
     private java.util.List<String> cultures;
     private String transport;
     private Integer numPlaces; // 원하는 반환 장소 개수
+    private String selectedStation; // 선택된 역 (새로 추가)
 }
 
 

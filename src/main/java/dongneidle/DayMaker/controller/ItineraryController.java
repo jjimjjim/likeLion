@@ -32,6 +32,13 @@ public class ItineraryController {
         ItineraryResponse response = itineraryService.createItinerary(request);
         return ResponseEntity.ok(response);
     }
+//AI 코스 생성 기능
+    @PostMapping("/generate")
+    @Operation(summary = "AI 여행 추천 생성", description = "입력 선호에 맞춘 장소 N개와 최적 동선 반환")
+    public ResponseEntity<ItineraryResponse> generateItinerary(@RequestBody ItineraryRequest request) {
+        ItineraryResponse response = itineraryService.createItinerary(request);
+        return ResponseEntity.ok(response);
+    }
 
     ////저장기능
     @PostMapping("/save")//코스 저장 → 생성된 코스 id 반환

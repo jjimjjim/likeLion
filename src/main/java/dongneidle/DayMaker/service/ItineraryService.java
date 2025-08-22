@@ -3,6 +3,8 @@ package dongneidle.DayMaker.service;
 import dongneidle.DayMaker.DTO.ItineraryRequest;
 import dongneidle.DayMaker.DTO.ItineraryResponse;
 import dongneidle.DayMaker.enums.*;
+import dongneidle.DayMaker.entity.Station;
+import dongneidle.DayMaker.repository.StationRepository;
 import dongneidle.DayMaker.util.DistanceCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,15 +12,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItineraryService {
-    
+    //코스 생성(추천) 로직
     private final GooglePlacesService googlePlacesService;
     private final FestivalService festivalService;
     private final GptService gptService;
+    private final StationRepository stationRepository; // 역 정보 조회용
     
     public ItineraryResponse createItinerary(ItineraryRequest request) {
         log.info("Creating itinerary for request: {}", request);
@@ -60,13 +64,42 @@ public class ItineraryService {
         // 문화 장소 컨테이너(후속 보정에서 사용)
         List<ItineraryResponse.PlaceDto> culturePlaces = new ArrayList<>();
         
-        // 음식 장소 검색 (다중 foodTypes)
+        //0823 역 기준 로직
+        // 역 기준 검색 좌표 설정 (Lambda에서 사용하므로 final로 선언)
+        final double searchLat;
+        final double searchLng;
+        final int searchRadius;
+        
+        if (request.getSelectedStation() != null && !request.getSelectedStation().trim().isEmpty()) {
+            // 선택된 역 정보 조회
+            var stationOpt = stationRepository.findByName(request.getSelectedStation().trim());
+            if (stationOpt.isPresent()) {
+                var station = stationOpt.get();
+                searchLat = station.getLatitude();
+                searchLng = station.getLongitude();
+                searchRadius = 2000; // 역 기준 2km 반경
+                log.info("역 기준 검색: {}역 (위도: {}, 경도: {}), 반경: {}m", 
+                        station.getName(), searchLat, searchLng, searchRadius);
+            } else {
+                log.warn("선택된 역을 찾을 수 없음: {}, 기본 좌표 사용", request.getSelectedStation());
+                searchLat = 37.3942; // 기본: 안양시 중심
+                searchLng = 126.9569;
+                searchRadius = 10000; // 기본: 10km
+            }
+        } else {
+            // 역을 선택하지 않은 경우 기본값 사용
+            searchLat = 37.3942; // 기본: 안양시 중심
+            searchLng = 126.9569;
+            searchRadius = 10000; // 기본: 10km
+        }
+        
+        // 음식 장소 검색 (다중 foodTypes) - 역 기준으로 검색
         List<ItineraryResponse.PlaceDto> foodPlaces = new ArrayList<>();
         java.util.Set<String> seenFoodIds = new java.util.HashSet<>();
         for (FoodType ft : selectedFoodTypes.isEmpty() ? java.util.List.of(foodTypePrimary) : selectedFoodTypes) {
-            // 1차: 기본 키워드
-            List<ItineraryResponse.PlaceDto> part = googlePlacesService.searchPlaces(
-                    ft.getGoogleType(), ft.getSearchKeyword(), numPlaces
+            // 1차: 기본 키워드 (역 기준으로 검색)
+            List<ItineraryResponse.PlaceDto> part = googlePlacesService.searchPlacesNearLocation(
+                    ft.getGoogleType(), ft.getSearchKeyword(), searchLat, searchLng, searchRadius, numPlaces
             );
             for (ItineraryResponse.PlaceDto p : part) {
                 if (p.getPlaceId() != null && seenFoodIds.add(p.getPlaceId())) foodPlaces.add(p);
@@ -101,7 +134,7 @@ public class ItineraryService {
                 String cultureGoogleType = ct.getGoogleType();
                 String[] typeParts = cultureGoogleType.contains("|") ? cultureGoogleType.split("\\|") : new String[]{cultureGoogleType};
                 for (String tp : typeParts) {
-                    List<ItineraryResponse.PlaceDto> part = googlePlacesService.searchPlaces(tp, ct.getSearchKeyword(), numPlaces);
+                    List<ItineraryResponse.PlaceDto> part = googlePlacesService.searchPlacesNearLocation(tp, ct.getSearchKeyword(), searchLat, searchLng, searchRadius, numPlaces);
                     for (ItineraryResponse.PlaceDto p : part) {
                         if (p.getPlaceId() != null && seenCultureIds.add(p.getPlaceId())) {
                             mergedCulture.add(p);
@@ -114,11 +147,25 @@ public class ItineraryService {
             log.info("Found {} culture places", culturePlaces.size());
         }
         
-        // 요청받은 날짜에 진행 중인 축제 추가
+        // 요청받은 날짜에 진행 중인 축제 추가 (역 기준으로 필터링)
         List<ItineraryResponse.PlaceDto> dateFestivals = festivalService.getFestivalsAsPlacesByRequestDate(request.getDate());
         if (!dateFestivals.isEmpty()) {
-            allPlaces.addAll(dateFestivals);
-            log.info("Added {} festivals for requested date: {}", dateFestivals.size(), request.getDate());
+                    // 역 기준으로 2km 반경 내 축제만 필터링
+        List<ItineraryResponse.PlaceDto> nearbyFestivals = dateFestivals.stream()
+            .filter(festival -> {
+                if (festival.getLatitude() != null && festival.getLongitude() != null) {
+                    double distance = DistanceCalculator.calculateDistance(
+                        searchLat, searchLng, 
+                        festival.getLatitude(), festival.getLongitude()
+                    );
+                    return distance <= 2.0; // 2km 이내
+                }
+                return false;
+            })
+            .toList();
+        
+        allPlaces.addAll(nearbyFestivals);
+        log.info("Added {} nearby festivals (within 2km) for requested date: {}", nearbyFestivals.size(), request.getDate());
         } else {
             log.info("No festivals found for requested date: {}", request.getDate());
         }

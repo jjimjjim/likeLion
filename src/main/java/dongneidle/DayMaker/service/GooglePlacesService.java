@@ -77,6 +77,43 @@ public class GooglePlacesService {
         return aggregated;
     }
 
+    /**
+     * 특정 좌표 기준으로 장소 검색 (역 기반 검색용)
+     */
+    public List<ItineraryResponse.PlaceDto> searchPlacesNearLocation(String type, String keyword, double latitude, double longitude, int radiusMeters, int desiredCount) {
+        if (googleApiKey.isEmpty()) {
+            log.warn("Google API key not configured, returning dummy data");
+            return getDummyPlaces(type, keyword);
+        }
+
+        try {
+            String url = String.format(
+                "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
+                "location=%f,%f&radius=%d&type=%s&keyword=%s&key=%s&language=ko",
+                latitude, longitude, radiusMeters, type, keyword, googleApiKey
+            );
+            log.info("Calling Google Places API (location-based): {} (radius: {}m)", url.replace(googleApiKey, "***"), radiusMeters);
+            
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            if (response != null && "OK".equals(response.get("status"))) {
+                List<Map<String, Object>> rawResults = (List<Map<String, Object>>) response.get("results");
+                List<ItineraryResponse.PlaceDto> places = convertAndFilter(rawResults, BASE_MIN_RATING, BASE_MIN_REVIEWS, new HashSet<>());
+                
+                // 원하는 개수만큼 반환
+                if (places.size() > desiredCount) {
+                    places = places.subList(0, desiredCount);
+                }
+                return places;
+            } else {
+                log.error("Google Places API error: {}", response);
+                return List.of();
+            }
+        } catch (Exception e) {
+            log.error("Error calling Google Places API (location-based)", e);
+            return List.of();
+        }
+    }
+
     private List<Map<String, Object>> callPlacesApi(int radiusMeters, String type, String keyword) {
         try {
             String url = String.format(
