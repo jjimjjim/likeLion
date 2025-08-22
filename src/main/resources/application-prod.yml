@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/daymaker?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/daymaker?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useUnicode=true}
     driverClassName: com.mysql.cj.jdbc.Driver
     username: root
     password: Daymaker1234@
@@ -21,4 +21,4 @@ google:
 openai:
   api:
     key: "${OPENAI_API_KEY}"
-    model: gpt-3.5-turbo
+    model: "gpt-3.5-turbo"

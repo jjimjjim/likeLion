@@ -7,12 +7,14 @@ import dongneidle.DayMaker.DTO.UserProfileResponse;
 import dongneidle.DayMaker.entity.User;
 import dongneidle.DayMaker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import dongneidle.DayMaker.util.JwtTokenProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
     /*
      * 회원가입 처리
@@ -30,38 +32,52 @@ public class UserService {
 
     // 회원가입
     public String register(UserRegisterRequest request) {
+        log.info("회원가입 시작: email={}", request.getEmail());
+        
         String normalizedEmail = normalizeEmail(request.getEmail());
         String rawPassword = request.getPassword();
         String trimmedNickname = request.getNickname() == null ? null : request.getNickname().trim();
 
+        log.debug("정규화된 이메일: {}, 닉네임: {}", normalizedEmail, trimmedNickname);
+
         // 이메일 형식 체크
         if (!isValidEmail(normalizedEmail)) {
+            log.warn("이메일 형식 오류: {}", normalizedEmail);
             return "이메일 형식이 올바르지 않습니다.";
         }
 
         // 비밀번호 형식 체크
         if (!isValidPassword(rawPassword)) {
+            log.warn("비밀번호 형식 오류");
             return "비밀번호: 8자 이상 20자 미만이며 대소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.";
         }
 
         // 닉네임 길이 체크 (영한문 상관없이 3~10자)
         if (!isValidNickname(trimmedNickname)) {
+            log.warn("닉네임 길이 오류: {}", trimmedNickname);
             return "닉네임: 3자 이상, 10자 미만이어야 합니다.";
         }
 
         // 이메일 중복 체크
         if (userRepository.existsById(normalizedEmail)) {
+            log.warn("이미 존재하는 이메일: {}", normalizedEmail);
             return "이미 존재하는 이메일입니다.";
         }
 
-        User user = User.builder()
-                .email(normalizedEmail)
-                .password(passwordEncoder.encode(rawPassword))
-                .nickname(trimmedNickname)
-                .build();
+        try {
+            User user = User.builder()
+                    .email(normalizedEmail)
+                    .password(passwordEncoder.encode(rawPassword))
+                    .nickname(trimmedNickname)
+                    .build();
 
-        userRepository.save(user);
-        return "회원가입 완료";
+            userRepository.save(user);
+            log.info("회원가입 완료: {}", normalizedEmail);
+            return "회원가입 완료";
+        } catch (Exception e) {
+            log.error("회원가입 저장 중 오류 발생", e);
+            throw e;
+        }
     }
 
     // 로그인

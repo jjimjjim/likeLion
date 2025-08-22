@@ -6,6 +6,7 @@ import dongneidle.DayMaker.DTO.UserRegisterRequest;
 import dongneidle.DayMaker.service.UserService;
 import dongneidle.DayMaker.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -25,12 +27,35 @@ public class UserController {
     @PostMapping("/register")
     @Operation(summary = "회원가입", description = "간단한 데모용 회원가입")
     public ResponseEntity<?> register(@RequestBody UserRegisterRequest request) {
-        String result = userService.register(request);
-        boolean success = result.startsWith("회원가입 완료");
-        return ResponseEntity.ok(Map.of(
-                "success", success,
-                "message", result
-        ));
+        try {
+            log.info("회원가입 요청 받음: email={}, nickname={}", request.getEmail(), request.getNickname());
+            
+            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "이메일은 필수입니다."));
+            }
+            
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "비밀번호는 필수입니다."));
+            }
+            
+            if (request.getNickname() == null || request.getNickname().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "닉네임은 필수입니다."));
+            }
+            
+            String result = userService.register(request);
+            boolean success = result.startsWith("회원가입 완료");
+            
+            log.info("회원가입 결과: {}", result);
+            
+            return ResponseEntity.ok(Map.of(
+                    "success", success,
+                    "message", result
+            ));
+        } catch (Exception e) {
+            log.error("회원가입 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "서버 오류가 발생했습니다: " + e.getMessage()));
+        }
     }
 
     // 로그인
