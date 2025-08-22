@@ -35,14 +35,14 @@ public class GooglePlacesService {
     private static final int DEFAULT_MAX_RESULTS = 12;  // 기본 최대 반환 개수 (상향)
     private static final String V1_BASE = "https://places.googleapis.com/v1";
 
-    /**
+    /*
      * 고정 기본 설정으로 검색 (하위 호환)
      */
     public List<ItineraryResponse.PlaceDto> searchPlaces(String type, String keyword) {
         return searchPlaces(type, keyword, DEFAULT_MAX_RESULTS);
     }
 
-    /**
+    /*
      * 원하는 후보 개수에 따라 동적으로 결과 수/필터/반경을 조정하여 검색
      */
     public List<ItineraryResponse.PlaceDto> searchPlaces(String type, String keyword, int desiredCount) {
@@ -78,7 +78,7 @@ public class GooglePlacesService {
     }
 
     /**
-     * 특정 좌표 기준으로 장소 검색 (역 기반 검색용)
+    * 특정 좌표 기준으로 장소 검색 (역 기반 검색용)
      */
     public List<ItineraryResponse.PlaceDto> searchPlacesNearLocation(String type, String keyword, double latitude, double longitude, int radiusMeters, int desiredCount) {
         if (googleApiKey.isEmpty()) {
