@@ -370,6 +370,30 @@ public class StationBasedCourseService {
                      );
                      log.info("일반 관광지 검색 결과: {}개", generalFestivalPlaces.size());
                      allPlaces.addAll(generalFestivalPlaces);
+                     
+                     // 6. 추가 문화시설 검색 (축제가 없을 때 대체)
+                     List<ItineraryResponse.PlaceDto> additionalCulturePlaces = googlePlacesService.searchPlacesNearLocation(
+                         "tourist_attraction", 
+                         "문화시설 전시관 갤러리", 
+                         station.getLatitude(), 
+                         station.getLongitude(), 
+                         5000, // 5km 반경
+                         15    // 15개
+                     );
+                     log.info("추가 문화시설 검색 결과: {}개", additionalCulturePlaces.size());
+                     allPlaces.addAll(additionalCulturePlaces);
+                     
+                     // 7. 공원/광장 검색 (축제 개최지로 활용 가능)
+                     List<ItineraryResponse.PlaceDto> parkPlaces = googlePlacesService.searchPlacesNearLocation(
+                         "park", 
+                         "", 
+                         station.getLatitude(), 
+                         station.getLongitude(), 
+                         5000, // 5km 반경
+                         10    // 10개
+                     );
+                     log.info("공원/광장 검색 결과: {}개", parkPlaces.size());
+                     allPlaces.addAll(parkPlaces);
                     
                 } else {
                     // 기타 문화 타입 (기타, 또는 새로운 타입)
@@ -485,20 +509,37 @@ public class StationBasedCourseService {
                 log.info("체험 관련 장소 필터링 후: {}개", experiencePlaces.size());
                 selectedPlaces = selectPlacesWithFallback(experiencePlaces, places, request);
                 
-            } else if ("지역축제".equals(request.getCultureType())) {
-                log.info("지역축제 타입: 축제시설 우선 선택 모드");
-                
-                // 축제 관련 장소만 필터링 (키워드 기반으로 이미 검색됨)
-                List<ItineraryResponse.PlaceDto> festivalPlaces = places.stream()
-                    .filter(place -> {
-                        String category = place.getCategory();
-                        return "ATTRACTION".equals(category) || 
-                               "CULTURE".equals(category); // 축제 관련 관광지
-                    })
-                    .collect(java.util.stream.Collectors.toList());
-                
-                log.info("축제 관련 장소 필터링 후: {}개", festivalPlaces.size());
-                selectedPlaces = selectPlacesWithFallback(festivalPlaces, places, request);
+                         } else if ("지역축제".equals(request.getCultureType())) {
+                 log.info("지역축제 타입: 음식점 + 문화시설 균형 선택 모드");
+                 
+                 // 음식점과 문화시설을 모두 포함하도록 강제
+                 List<ItineraryResponse.PlaceDto> foodPlaces = places.stream()
+                     .filter(place -> {
+                         String category = place.getCategory();
+                         return "RESTAURANT".equals(category) || 
+                                "CAFE".equals(category); // 음식점과 카페
+                     })
+                     .collect(java.util.stream.Collectors.toList());
+                 
+                 List<ItineraryResponse.PlaceDto> culturePlaces = places.stream()
+                     .filter(place -> {
+                         String category = place.getCategory();
+                         return "ATTRACTION".equals(category) || 
+                                "CULTURE".equals(category) ||
+                                "MUSEUM".equals(category) ||
+                                "PARK".equals(category); // 문화시설, 관광지, 공원
+                     })
+                     .collect(java.util.stream.Collectors.toList());
+                 
+                 log.info("음식점/카페: {}개, 문화시설: {}개", foodPlaces.size(), culturePlaces.size());
+                 
+                 // 음식점과 문화시설이 모두 있는 경우에만 선택
+                 if (foodPlaces.size() > 0 && culturePlaces.size() > 0) {
+                     selectedPlaces = selectPlacesWithBalance(foodPlaces, culturePlaces, places, request);
+                 } else {
+                     // 부족한 경우 fallback
+                     selectedPlaces = selectPlacesWithFallback(culturePlaces, places, request);
+                 }
                 
             } else {
                 // 기타 문화 타입
@@ -519,6 +560,40 @@ public class StationBasedCourseService {
             log.error("GPT 코스 추천 생성 중 오류 발생", e);
             return "코스 추천 생성에 실패했습니다.";
         }
+    }
+    
+    /**
+     * 음식점과 문화시설의 균형잡힌 선택
+     */
+    private List<ItineraryResponse.PlaceDto> selectPlacesWithBalance(
+            List<ItineraryResponse.PlaceDto> foodPlaces, 
+            List<ItineraryResponse.PlaceDto> culturePlaces,
+            List<ItineraryResponse.PlaceDto> allPlaces, 
+            StationRequest request) {
+        
+        log.info("균형잡힌 선택 모드: 음식점 {}개, 문화시설 {}개", foodPlaces.size(), culturePlaces.size());
+        
+        // 음식점 1-2개, 문화시설 2-3개로 구성
+        List<ItineraryResponse.PlaceDto> balancedPlaces = new ArrayList<>();
+        
+        // 음식점 1-2개 선택 (평점 높은 순)
+        List<ItineraryResponse.PlaceDto> selectedFood = foodPlaces.stream()
+            .sorted((a, b) -> Double.compare(b.getRating(), a.getRating()))
+            .limit(2)
+            .collect(java.util.stream.Collectors.toList());
+        balancedPlaces.addAll(selectedFood);
+        
+        // 문화시설 2-3개 선택 (평점 높은 순)
+        int cultureCount = 4 - selectedFood.size(); // 남은 자리만큼
+        List<ItineraryResponse.PlaceDto> selectedCulture = culturePlaces.stream()
+            .sorted((a, b) -> Double.compare(b.getRating(), a.getRating()))
+            .limit(cultureCount)
+            .collect(java.util.stream.Collectors.toList());
+        balancedPlaces.addAll(selectedCulture);
+        
+        log.info("균형잡힌 선택 결과: 음식점 {}개, 문화시설 {}개", selectedFood.size(), selectedCulture.size());
+        
+        return balancedPlaces;
     }
     
     /**

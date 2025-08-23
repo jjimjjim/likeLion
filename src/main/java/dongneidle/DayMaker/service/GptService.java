@@ -94,8 +94,10 @@ public class GptService {
         prompt.append("1. 평점이 높은 장소 우선\n");
         prompt.append("2. 사용자 인원수에 적합한 장소\n");
         prompt.append("3. 교통수단을 고려한 접근성\n");
-        prompt.append("4. 음식 타입에 따른 균형잡힌 선택 (한식, 카페 등 요청된 타입을 골고루 포함)\n");
-        prompt.append("5. 장소 유형의 다양성 (음식점, 카페, 문화시설 등)\n\n");
+        prompt.append("4. 음식 타입과 문화시설의 균형잡힌 선택 (반드시 포함해야 함)\n");
+        prompt.append("5. 장소 유형의 다양성 (음식점, 카페, 문화시설 등)\n");
+        prompt.append("6. 지역축제 요청 시: 음식점 1-2개 + 문화시설 2-3개로 구성\n");
+        prompt.append("7. 음식점이 없으면 안됨! 반드시 음식점과 문화시설을 모두 포함\n\n");
         prompt.append("장소 목록:\n");
         
         for (int i = 0; i < allPlaces.size(); i++) {
@@ -219,7 +221,7 @@ public class GptService {
             return false;
         }
         return foodType.stream().anyMatch(type -> 
-            "중식".equals(type) || "양식".equals(type) || "카페".equals(type) || "일식".equals(type) || "기타".equals(type)
+            "중식".equals(type) || "양식".equals(type) || "일식".equals(type) || "기타".equals(type)
         );
     }
     
