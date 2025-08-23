@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum FoodType {
-    CAFE("감성카페", "cafe", "카페"),
+    CAFE("카페", "cafe", "카페"),
     KOREAN("한식", "restaurant", "한식"),
     CHINESE("중식", "restaurant", "중식"),
     WESTERN("양식", "restaurant", "양식"),

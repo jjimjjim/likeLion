@@ -182,8 +182,11 @@ public class ItineraryService {
                 : (selectedFoodTypes.isEmpty() ? (request.getFood() != null ? request.getFood() : "기타")
                                                : selectedFoodTypes.get(0).getDisplayName());
 
+        // String을 List<String>으로 변환
+        List<String> foodTypeListForGpt = List.of(foodTypeForGpt);
+
         List<ItineraryResponse.PlaceDto> gptSelectedPlaces = gptService.selectOptimalPlaces(
-            allPlaces, request.getPeopleCount(), request.getTransport(), numPlaces, foodTypeForGpt
+            allPlaces, request.getPeopleCount(), request.getTransport(), numPlaces, foodTypeListForGpt
         );
 
         // 3-1. 정확한 카테고리 구성 보정 (멀티 선택 기반)
@@ -445,9 +448,10 @@ public class ItineraryService {
         // 문화 선호: 1차 문화와 매칭 시 가중치
         switch (cultureTypePrimary) {
             case MOVIE -> { if ("MOVIE".equals(p.getCategory())) bonus += 0.6; }
-            case PERFORMANCE -> { if ("CULTURE".equals(p.getCategory())) bonus += 0.6; }
+            case NATURE -> { if ("NATURE".equals(p.getCategory())) bonus += 0.6; }
             case EXPERIENCE -> { if ("ATTRACTION".equals(p.getCategory())) bonus += 0.6; }
             case FESTIVAL -> { if ("FESTIVAL".equals(p.getCategory())) bonus += 0.8; }
+            case OTHER -> { if ("CULTURE".equals(p.getCategory())) bonus += 0.4; }
             default -> {}
         }
         // 유사 카테고리 소폭 가중치

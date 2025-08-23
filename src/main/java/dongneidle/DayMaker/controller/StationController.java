@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/stations")
@@ -35,9 +36,31 @@ public class StationController {
     @GetMapping("/{stationName}")
     public ResponseEntity<Station> getStationByName(@PathVariable String stationName) {
         log.info("역 정보 조회 요청: {}", stationName);
-        return stationBasedCourseService.getStationByName(stationName)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        log.info("요청된 역명 길이: {}", stationName.length());
+        log.info("요청된 역명 바이트: {}", java.util.Arrays.toString(stationName.getBytes()));
+        
+        // 모든 역 목록을 먼저 로그로 확인
+        List<Station> allStations = stationBasedCourseService.getAvailableStations();
+        log.info("전체 역 목록: {}", allStations.stream().map(Station::getName).toList());
+        log.info("전체 역 개수: {}", allStations.size());
+        
+        // 각 역의 상세 정보도 로그로 확인
+        for (Station station : allStations) {
+            log.info("역 정보 - ID: {}, 이름: '{}', 길이: {}, 바이트: {}", 
+                station.getId(), 
+                station.getName(), 
+                station.getName().length(),
+                java.util.Arrays.toString(station.getName().getBytes()));
+        }
+        
+        Optional<Station> stationOpt = stationBasedCourseService.getStationByName(stationName);
+        if (stationOpt.isPresent()) {
+            log.info("찾은 역: {}", stationOpt.get().getName());
+            return ResponseEntity.ok(stationOpt.get());
+        } else {
+            log.warn("역을 찾을 수 없음: '{}'", stationName);
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**

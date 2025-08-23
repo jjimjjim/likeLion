@@ -41,7 +41,7 @@ public class GptService {
             String peopleCount,
             String transport,
             int maxPlaces,
-            String foodType) {
+            List<String> foodType) {
         
         if (openaiApiKey.isEmpty()) {
             log.warn("OpenAI API key not configured, returning first {} places", maxPlaces);
@@ -82,19 +82,20 @@ public class GptService {
             String peopleCount,
             String transport,
             int maxPlaces,
-            String foodType) {
+            List<String> foodType) {
         
         StringBuilder prompt = new StringBuilder();
         prompt.append("다음 장소들 중에서 사용자 상황에 맞는 최적의 ").append(maxPlaces).append("개 장소를 선택해주세요.\n\n");
         prompt.append("사용자 정보:\n");
         prompt.append("- 인원수: ").append(peopleCount).append("\n");
         prompt.append("- 교통수단: ").append(transport).append("\n");
-        prompt.append("- 음식 타입: ").append(foodType).append("\n\n");
+        prompt.append("- 음식 타입: ").append(String.join(", ", foodType)).append("\n\n");
         prompt.append("선택 기준:\n");
         prompt.append("1. 평점이 높은 장소 우선\n");
         prompt.append("2. 사용자 인원수에 적합한 장소\n");
         prompt.append("3. 교통수단을 고려한 접근성\n");
-        prompt.append("4. 음식 타입에 따른 특화된 선택 (예: 중식, 양식, 일식 등)\n\n");
+        prompt.append("4. 음식 타입에 따른 균형잡힌 선택 (한식, 카페 등 요청된 타입을 골고루 포함)\n");
+        prompt.append("5. 장소 유형의 다양성 (음식점, 카페, 문화시설 등)\n\n");
         prompt.append("장소 목록:\n");
         
         for (int i = 0; i < allPlaces.size(); i++) {
@@ -167,7 +168,7 @@ public class GptService {
      */
     private List<ItineraryResponse.PlaceDto> applyNRestriction(
             List<ItineraryResponse.PlaceDto> selectedPlaces, 
-            String foodType) {
+            List<String> foodType) {
         
         // 음식점이 아닌 경우 제한 없음
         if (!isRestaurantType(foodType)) {
@@ -213,8 +214,13 @@ public class GptService {
     /**
      * 음식 타입이 음식점인지 확인
      */
-    private boolean isRestaurantType(String foodType) {
-        return "중식".equals(foodType) || "양식".equals(foodType) || "일식".equals(foodType) || "기타".equals(foodType);
+    private boolean isRestaurantType(List<String> foodType) {
+        if (foodType == null || foodType.isEmpty()) {
+            return false;
+        }
+        return foodType.stream().anyMatch(type -> 
+            "중식".equals(type) || "양식".equals(type) || "카페".equals(type) || "일식".equals(type) || "기타".equals(type)
+        );
     }
     
     /**

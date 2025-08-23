@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum CultureType {
-    MOVIE("영화", "movie_theater", "영화관"),
-    PERFORMANCE("공연/전시", "art_gallery|museum", "전시관"),
+    MOVIE("영화/공연/전시", "movie_theater|museum|art_gallery", "영화관"),
+    NATURE("자연/공원", "park|nature", "자연"),
     EXPERIENCE("체험", "tourist_attraction", "체험"),
     FESTIVAL("지역축제", "tourist_attraction", "축제"),
     OTHER("기타", "tourist_attraction", "문화시설");
