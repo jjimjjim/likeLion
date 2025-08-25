@@ -74,7 +74,7 @@ public class StationBasedCourseService {
                 station.getName(), 
                 station.getLatitude(), 
                 station.getLongitude(), 
-                5000, // 5km 반경
+                500, // 500 반경
                 10    // 최대 10개 장소
             );
             
@@ -141,7 +141,7 @@ public class StationBasedCourseService {
                         searchKeyword, // 각 음식 타입별 키워드로 검색
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 500m 반경
                         8     // 각 타입별 8개씩
                     );
                     log.info("{} 검색 결과: {}개", foodType, foodPlaces.size());
@@ -163,7 +163,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경으로 확장
+                        500, // 5 반경으로 확장
                         10    // 영화관 10개
                     );
                     log.info("영화관 검색 결과: {}개", moviePlaces.size());
@@ -174,7 +174,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경으로 확장
+                        500, // 5 반경으로 확장
                         10    // 박물관 10개
                     );
                     log.info("박물관/미술관 검색 결과: {}개", museumPlaces.size());
@@ -185,7 +185,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경으로 확장
+                        500, // 5km 반경으로 확장
                         10    // 미술관 10개
                     );
                     log.info("미술관 검색 결과: {}개", artGalleryPlaces.size());
@@ -197,7 +197,7 @@ public class StationBasedCourseService {
                         "공연 전시 문화", // 키워드로 검색
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 5km 반경
                         15    // 15개
                     );
                     log.info("키워드 기반 문화시설 검색 결과: {}개", keywordPlaces.size());
@@ -209,7 +209,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 5km 반경
                         20    // 20개
                     );
                     log.info("일반 관광지 검색 결과: {}개", generalCulturePlaces.size());
@@ -225,7 +225,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 500m 반경
                         15    // 공원 15개
                     );
                     log.info("공원 검색 결과: {}개", parkPlaces.size());
@@ -237,7 +237,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 500m 반경
                         10    // 자연 경관 10개
                     );
                     log.info("자연 경관 검색 결과: {}개", naturePlaces.size());
@@ -249,7 +249,7 @@ public class StationBasedCourseService {
                         "공원 산 강 자연", // 자연 관련 키워드로 검색
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 5km 반경
                         15    // 15개
                     );
                     log.info("키워드 기반 자연시설 검색 결과: {}개", keywordNaturePlaces.size());
@@ -261,7 +261,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 500 반경
                         20    // 20개
                     );
                     log.info("일반 자연시설 검색 결과: {}개", generalNaturePlaces.size());
@@ -277,7 +277,7 @@ public class StationBasedCourseService {
                         "체험", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 5 반경
                         15    // 체험 시설 15개
                     );
                     log.info("체험 시설 검색 결과: {}개", experiencePlaces.size());
@@ -289,7 +289,7 @@ public class StationBasedCourseService {
                         "체험 만들기 DIY", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 5 반경
                         15    // 15개
                     );
                     log.info("키워드 기반 체험시설 검색 결과: {}개", keywordExperiencePlaces.size());
@@ -301,7 +301,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 5km 반경
                         20    // 20개
                     );
                     log.info("일반 체험시설 검색 결과: {}개", generalExperiencePlaces.size());
@@ -317,7 +317,7 @@ public class StationBasedCourseService {
                          "축제", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         5000, // 5km 반경
+                         500, // 5km 반경
                          15    // 축제 관련 15개
                      );
                      log.info("축제 관련 검색 결과: {}개", festivalPlaces.size());
@@ -329,7 +329,7 @@ public class StationBasedCourseService {
                          "이벤트 행사", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         5000, // 5km 반경
+                         500, // 5km 반경
                          15    // 15개
                      );
                      log.info("이벤트/행사 관련 검색 결과: {}개", eventPlaces.size());
@@ -341,7 +341,7 @@ public class StationBasedCourseService {
                          "문화 전통", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         5000, // 5km 반경
+                         500, // 5km 반경
                          15    // 15개
                      );
                      log.info("문화/전통 관련 검색 결과: {}개", culturePlaces.size());
@@ -353,7 +353,7 @@ public class StationBasedCourseService {
                          "", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         5000, // 5km 반경
+                         500, // 5km 반경
                          10    // 10개
                      );
                      log.info("박물관/전시관 검색 결과: {}개", museumPlaces.size());
@@ -365,7 +365,7 @@ public class StationBasedCourseService {
                          "", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         5000, // 5km 반경
+                         500, // 5km 반경
                          25    // 25개로 증가
                      );
                      log.info("일반 관광지 검색 결과: {}개", generalFestivalPlaces.size());
@@ -377,7 +377,7 @@ public class StationBasedCourseService {
                          "문화시설 전시관 갤러리", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         5000, // 5km 반경
+                         500, // 5km 반경
                          15    // 15개
                      );
                      log.info("추가 문화시설 검색 결과: {}개", additionalCulturePlaces.size());
@@ -389,7 +389,7 @@ public class StationBasedCourseService {
                          "", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         5000, // 5km 반경
+                         500, // 5km 반경
                          10    // 10개
                      );
                      log.info("공원/광장 검색 결과: {}개", parkPlaces.size());
@@ -405,7 +405,7 @@ public class StationBasedCourseService {
                         request.getCultureType(), // 사용자가 입력한 문화 타입을 키워드로 사용
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 5km 반경
                         15    // 15개
                     );
                     log.info("키워드 기반 문화시설 검색 결과: {}개", keywordCulturePlaces.size());
@@ -417,7 +417,7 @@ public class StationBasedCourseService {
                         "", 
                         station.getLatitude(), 
                         station.getLongitude(), 
-                        5000, // 5km 반경
+                        500, // 5km 반경
                         20    // 20개
                     );
                     log.info("일반 문화시설 검색 결과: {}개", generalCulturePlaces.size());
@@ -433,7 +433,7 @@ public class StationBasedCourseService {
                     "", 
                     station.getLatitude(), 
                     station.getLongitude(), 
-                    5000, // 5km 반경
+                    500, // 5km 반경
                     10    // 카페 10개
                 );
                 log.info("카페 검색 결과: {}개", cafePlaces.size());
@@ -634,7 +634,7 @@ public class StationBasedCourseService {
                                 foodType, 
                                 allPlaces.get(0).getLatitude(), // 첫 번째 장소의 좌표 사용
                                 allPlaces.get(0).getLongitude(), 
-                                5000, 
+                                500,
                                 5
                             );
                             additionalPlaces.addAll(extraFood);
@@ -649,7 +649,7 @@ public class StationBasedCourseService {
                         "", 
                         allPlaces.get(0).getLatitude(), 
                         allPlaces.get(0).getLongitude(), 
-                        5000, 
+                        500,
                         5
                     );
                     additionalPlaces.addAll(extraCafe);

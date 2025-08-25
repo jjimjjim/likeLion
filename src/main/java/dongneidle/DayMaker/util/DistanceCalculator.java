@@ -38,6 +38,6 @@ public class DistanceCalculator {
      * @return 두 지점 간의 거리 (미터)
      */
     public static double calculateDistanceInMeters(double lat1, double lon1, double lat2, double lon2) {
-        return calculateDistance(lat1, lon1, lat2, lon2) * 1000;
+        return calculateDistance(lat1, lon1, lat2, lon2) * 500;
     }
 }
