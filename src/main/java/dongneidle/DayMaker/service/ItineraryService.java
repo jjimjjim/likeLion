@@ -199,35 +199,30 @@ public class ItineraryService {
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toSet());
 
-        // 후보 풀 준비 (+ 가중치 기반 정렬)
+        // 후보 풀 준비 (랜덤하게 섞기)
         java.util.List<ItineraryResponse.PlaceDto> gptRestaurants = gptSelectedPlaces.stream()
                 .filter(p -> "RESTAURANT".equals(p.getCategory()))
-                .sorted((a, b) -> Double.compare(scorePlace(b, foodTypePrimary, cultureTypePrimary), scorePlace(a, foodTypePrimary, cultureTypePrimary)))
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
         java.util.List<ItineraryResponse.PlaceDto> gptNonRestaurants = gptSelectedPlaces.stream()
                 .filter(p -> !"RESTAURANT".equals(p.getCategory()))
-                .sorted((a, b) -> Double.compare(scorePlace(b, foodTypePrimary, cultureTypePrimary), scorePlace(a, foodTypePrimary, cultureTypePrimary)))
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
 
         java.util.List<ItineraryResponse.PlaceDto> foodRestaurantPool = foodPlaces.stream()
                 .filter(p -> p.getPlaceId() != null && !selectedIds.contains(p.getPlaceId()))
                 .filter(p -> "RESTAURANT".equals(p.getCategory()))
-                .sorted((a, b) -> Double.compare(scorePlace(b, foodTypePrimary, cultureTypePrimary), scorePlace(a, foodTypePrimary, cultureTypePrimary)))
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
 
         // 문화 선택 카테고리 우선(non-restaurant) 풀 (예: 영화관)
         java.util.List<ItineraryResponse.PlaceDto> preferredNonRestaurantPool = culturePlaces.stream()
                 .filter(p -> p.getPlaceId() != null && !selectedIds.contains(p.getPlaceId()))
                 .filter(p -> !"RESTAURANT".equals(p.getCategory()))
-                .sorted((a, b) -> Double.compare(scorePlace(b, foodTypePrimary, cultureTypePrimary), scorePlace(a, foodTypePrimary, cultureTypePrimary)))
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
 
         // 기타 non-restaurant 후보 (전체에서 남은 것)
         java.util.List<ItineraryResponse.PlaceDto> otherNonRestaurantPool = allPlaces.stream()
                 .filter(p -> p.getPlaceId() != null && !selectedIds.contains(p.getPlaceId()))
                 .filter(p -> !"RESTAURANT".equals(p.getCategory()))
-                .sorted((a, b) -> Double.compare(scorePlace(b, foodTypePrimary, cultureTypePrimary), scorePlace(a, foodTypePrimary, cultureTypePrimary)))
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
 
         java.util.List<ItineraryResponse.PlaceDto> finalSelected = new java.util.ArrayList<>();
 
@@ -256,12 +251,11 @@ public class ItineraryService {
                 for (FoodType ft : fallbackFoods) {
                     if (need <= 0) break;
                     List<ItineraryResponse.PlaceDto> cands = googlePlacesService.searchPlaces(ft.getGoogleType(), ft.getSearchKeyword(), Math.max(numPlaces, 6));
-                    // 레스토랑만, 중복 제거, 가중치 정렬
+                    // 레스토랑만, 중복 제거, 랜덤하게 처리
                     cands = cands.stream()
                             .filter(p -> "RESTAURANT".equals(p.getCategory()))
                             .filter(p -> p.getPlaceId() != null && !avoidIds.contains(p.getPlaceId()))
-                            .sorted((a, b) -> Double.compare(scorePlace(b, foodTypePrimary, cultureTypePrimary), scorePlace(a, foodTypePrimary, cultureTypePrimary)))
-                            .toList();
+                            .collect(java.util.stream.Collectors.toList());
                     for (ItineraryResponse.PlaceDto p : cands) {
                         if (need <= 0) break;
                         finalSelected.add(p);
@@ -417,18 +411,17 @@ public class ItineraryService {
                 .build();
     }
 
-    // 비식당 보충 헬퍼 (중복 제거 + 가중치 정렬)
+    // 비식당 보충 헬퍼 (중복 제거 + 랜덤하게 처리)
     private List<ItineraryResponse.PlaceDto> fillNonRest(List<ItineraryResponse.PlaceDto> picked,
                                                          List<ItineraryResponse.PlaceDto> already,
                                                          List<ItineraryResponse.PlaceDto> candidates,
                                                          int desiredNonRestaurants,
                                                          FoodType foodType,
                                                          CultureType cultureType) {
-        List<ItineraryResponse.PlaceDto> sorted = candidates.stream()
+        List<ItineraryResponse.PlaceDto> candidatesList = candidates.stream()
                 .filter(p -> !"RESTAURANT".equals(p.getCategory()))
-                .sorted((a, b) -> Double.compare(scorePlace(b, foodType, cultureType), scorePlace(a, foodType, cultureType)))
-                .toList();
-        for (ItineraryResponse.PlaceDto p : sorted) {
+                .collect(java.util.stream.Collectors.toList());
+        for (ItineraryResponse.PlaceDto p : candidatesList) {
             if (picked.size() >= desiredNonRestaurants) break;
             boolean dup = already.stream().anyMatch(s -> s.getPlaceId().equals(p.getPlaceId())) ||
                           picked.stream().anyMatch(s -> s.getPlaceId().equals(p.getPlaceId()));
@@ -505,11 +498,9 @@ public class ItineraryService {
         List<ItineraryResponse.PlaceDto> optimized = new ArrayList<>();
         List<ItineraryResponse.PlaceDto> remaining = new ArrayList<>(places);
         
-        // 첫 번째 장소 선택 (평점/가중치 높은 곳 우선)
-        ItineraryResponse.PlaceDto current = remaining.stream()
-                .max((p1, p2) -> Double.compare(p1.getRating() != null ? p1.getRating() : 0.0,
-                                                 p2.getRating() != null ? p2.getRating() : 0.0))
-                .orElse(remaining.get(0));
+        // 첫 번째 장소 선택 (랜덤하게 선택)
+        int randomIndex = (int) (Math.random() * remaining.size());
+        ItineraryResponse.PlaceDto current = remaining.get(randomIndex);
         
         optimized.add(current);
         remaining.remove(current);
