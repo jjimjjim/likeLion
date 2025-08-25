@@ -87,17 +87,12 @@ public class GptService {
         StringBuilder prompt = new StringBuilder();
         prompt.append("다음 장소들 중에서 사용자 상황에 맞는 최적의 ").append(maxPlaces).append("개 장소를 선택해주세요.\n\n");
         prompt.append("사용자 정보:\n");
-        prompt.append("- 인원수: ").append(peopleCount).append("\n");
-        prompt.append("- 교통수단: ").append(transport).append("\n");
         prompt.append("- 음식 타입: ").append(String.join(", ", foodType)).append("\n\n");
         prompt.append("선택 기준:\n");
-        prompt.append("1. 평점이 높은 장소 우선\n");
-        prompt.append("2. 사용자 인원수에 적합한 장소\n");
-        prompt.append("3. 교통수단을 고려한 접근성\n");
-        prompt.append("4. 음식 타입과 문화시설의 균형잡힌 선택 (반드시 포함해야 함)\n");
-        prompt.append("5. 장소 유형의 다양성 (음식점, 카페, 문화시설 등)\n");
-        prompt.append("6. 지역축제 요청 시: 음식점 2-3개 + 문화시설 1-2개로 구성\n");
-        prompt.append("7. 음식점이 없으면 안됨! 반드시 음식점과 문화시설을 모두 포함\n\n");
+        prompt.append("1. 음식 타입과 문화시설의 균형잡힌 선택 (반드시 포함해야 함)\n");
+        prompt.append("2. 장소 유형의 다양성 (음식점, 카페, 문화시설 등)\n");
+        prompt.append("3. 지역축제 요청 시: 음식점 2-3개 + 문화시설 1-2개로 구성\n");
+        prompt.append("4. 음식점이 없으면 안됨! 반드시 음식점과 문화시설을 모두 포함\n\n");
         prompt.append("장소 목록:\n");
         
         for (int i = 0; i < allPlaces.size(); i++) {
