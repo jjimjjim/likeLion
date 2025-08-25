@@ -153,247 +153,300 @@ public class StationBasedCourseService {
             if (request.getCultureType() != null && !request.getCultureType().isEmpty()) {
                 log.info("문화시설 검색 시작: {}", request.getCultureType());
                 
-                // 공연/전시인 경우 더 구체적인 검색
-                if ("공연/전시".equals(request.getCultureType())) {
-                    log.info("공연/전시 타입 검색 시작");
-                    
-                    // 1. 타입 기반 검색 (5km로 확장)
-                    List<ItineraryResponse.PlaceDto> moviePlaces = googlePlacesService.searchPlacesNearLocation(
-                        "movie_theater", 
-                        "", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5 반경으로 확장
-                        10    // 영화관 10개
-                    );
-                    log.info("영화관 검색 결과: {}개", moviePlaces.size());
-                    allPlaces.addAll(moviePlaces);
-                    
-                    List<ItineraryResponse.PlaceDto> museumPlaces = googlePlacesService.searchPlacesNearLocation(
-                        "museum", 
-                        "", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5 반경으로 확장
-                        10    // 박물관 10개
-                    );
-                    log.info("박물관/미술관 검색 결과: {}개", museumPlaces.size());
-                    allPlaces.addAll(museumPlaces);
-                    
-                    List<ItineraryResponse.PlaceDto> artGalleryPlaces = googlePlacesService.searchPlacesNearLocation(
-                        "art_gallery", 
-                        "", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5km 반경으로 확장
-                        10    // 미술관 10개
-                    );
-                    log.info("미술관 검색 결과: {}개", artGalleryPlaces.size());
-                    allPlaces.addAll(artGalleryPlaces);
-                    
-                    // 2. 키워드 기반 검색 추가 (타입으로 찾지 못한 경우)
-                    List<ItineraryResponse.PlaceDto> keywordPlaces = googlePlacesService.searchPlacesNearLocation(
-                        "tourist_attraction", 
-                        "공연 전시 문화", // 키워드로 검색
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5km 반경
-                        15    // 15개
-                    );
-                    log.info("키워드 기반 문화시설 검색 결과: {}개", keywordPlaces.size());
-                    allPlaces.addAll(keywordPlaces);
-                    
-                    // 3. 더 일반적인 관광지 검색
-                    List<ItineraryResponse.PlaceDto> generalCulturePlaces = googlePlacesService.searchPlacesNearLocation(
-                        "tourist_attraction", 
-                        "", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5km 반경
-                        20    // 20개
-                    );
-                    log.info("일반 관광지 검색 결과: {}개", generalCulturePlaces.size());
-                    allPlaces.addAll(generalCulturePlaces);
-                    
-                } else if ("자연/공원".equals(request.getCultureType())) {
-                    // 자연/공원인 경우 더 구체적인 검색
-                    log.info("자연/공원 타입 검색 시작");
-                    
-                    // 1. 공원 검색
-                    List<ItineraryResponse.PlaceDto> parkPlaces = googlePlacesService.searchPlacesNearLocation(
-                        "park", 
-                        "", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 500m 반경
-                        15    // 공원 15개
-                    );
-                    log.info("공원 검색 결과: {}개", parkPlaces.size());
-                    allPlaces.addAll(parkPlaces);
-                    
-                    // 2. 자연 경관 검색
-                    List<ItineraryResponse.PlaceDto> naturePlaces = googlePlacesService.searchPlacesNearLocation(
-                        "natural_feature", 
-                        "", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 500m 반경
-                        10    // 자연 경관 10개
-                    );
-                    log.info("자연 경관 검색 결과: {}개", naturePlaces.size());
-                    allPlaces.addAll(naturePlaces);
-                    
-                    // 3. 키워드 기반 검색 (공원, 산, 강 등)
-                    List<ItineraryResponse.PlaceDto> keywordNaturePlaces = googlePlacesService.searchPlacesNearLocation(
-                        "tourist_attraction", 
-                        "공원 산 강 자연", // 자연 관련 키워드로 검색
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5km 반경
-                        15    // 15개
-                    );
-                    log.info("키워드 기반 자연시설 검색 결과: {}개", keywordNaturePlaces.size());
-                    allPlaces.addAll(keywordNaturePlaces);
-                    
-                    // 4. 일반 관광지 검색 (자연 관련)
-                    List<ItineraryResponse.PlaceDto> generalNaturePlaces = googlePlacesService.searchPlacesNearLocation(
-                        "tourist_attraction", 
-                        "", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 500 반경
-                        20    // 20개
-                    );
-                    log.info("일반 자연시설 검색 결과: {}개", generalNaturePlaces.size());
-                    allPlaces.addAll(generalNaturePlaces);
-                    
-                } else if ("체험".equals(request.getCultureType())) {
-                    // 체험인 경우 더 구체적인 검색
-                    log.info("체험 타입 검색 시작");
-                    
-                    // 1. 체험 시설 검색
-                    List<ItineraryResponse.PlaceDto> experiencePlaces = googlePlacesService.searchPlacesNearLocation(
-                        "tourist_attraction", 
-                        "체험", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5 반경
-                        15    // 체험 시설 15개
-                    );
-                    log.info("체험 시설 검색 결과: {}개", experiencePlaces.size());
-                    allPlaces.addAll(experiencePlaces);
-                    
-                    // 2. 키워드 기반 검색 (체험, 만들기, DIY 등)
-                    List<ItineraryResponse.PlaceDto> keywordExperiencePlaces = googlePlacesService.searchPlacesNearLocation(
-                        "tourist_attraction", 
-                        "체험 만들기 DIY", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5 반경
-                        15    // 15개
-                    );
-                    log.info("키워드 기반 체험시설 검색 결과: {}개", keywordExperiencePlaces.size());
-                    allPlaces.addAll(keywordExperiencePlaces);
-                    
-                    // 3. 일반 관광지 검색
-                    List<ItineraryResponse.PlaceDto> generalExperiencePlaces = googlePlacesService.searchPlacesNearLocation(
-                        "tourist_attraction", 
-                        "", 
-                        station.getLatitude(), 
-                        station.getLongitude(), 
-                        500, // 5km 반경
-                        20    // 20개
-                    );
-                    log.info("일반 체험시설 검색 결과: {}개", generalExperiencePlaces.size());
-                    allPlaces.addAll(generalExperiencePlaces);
-                    
-                                 } else if ("지역축제".equals(request.getCultureType())) {
-                     // 지역축제인 경우 더 구체적인 검색
-                     log.info("지역축제 타입 검색 시작");
+                                 // 공연/전시인 경우 더 구체적인 검색
+                 if ("공연/전시".equals(request.getCultureType())) {
+                     log.info("공연/전시 타입 검색 시작");
                      
-                     // 1. 축제 관련 검색 (더 넓은 키워드)
-                     List<ItineraryResponse.PlaceDto> festivalPlaces = googlePlacesService.searchPlacesNearLocation(
-                         "tourist_attraction", 
-                         "축제", 
+                     // 1. 타입 기반 검색 (키워드별로 1개씩, 총 2개만)
+                     List<ItineraryResponse.PlaceDto> moviePlaces = googlePlacesService.searchPlacesNearLocation(
+                         "movie_theater", 
+                         "", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         500, // 5km 반경
-                         15    // 축제 관련 15개
+                         500, // 500m 반경
+                         1     // 영화관 1개만
                      );
-                     log.info("축제 관련 검색 결과: {}개", festivalPlaces.size());
-                     allPlaces.addAll(festivalPlaces);
+                     log.info("영화관 검색 결과: {}개", moviePlaces.size());
+                     allPlaces.addAll(moviePlaces);
                      
-                     // 2. 이벤트/행사 관련 검색
-                     List<ItineraryResponse.PlaceDto> eventPlaces = googlePlacesService.searchPlacesNearLocation(
-                         "tourist_attraction", 
-                         "이벤트 행사", 
-                         station.getLatitude(), 
-                         station.getLongitude(), 
-                         500, // 5km 반경
-                         15    // 15개
-                     );
-                     log.info("이벤트/행사 관련 검색 결과: {}개", eventPlaces.size());
-                     allPlaces.addAll(eventPlaces);
-                     
-                     // 3. 문화/전통 관련 검색 (축제와 연관성 높음)
-                     List<ItineraryResponse.PlaceDto> culturePlaces = googlePlacesService.searchPlacesNearLocation(
-                         "tourist_attraction", 
-                         "문화 전통", 
-                         station.getLatitude(), 
-                         station.getLongitude(), 
-                         500, // 5km 반경
-                         15    // 15개
-                     );
-                     log.info("문화/전통 관련 검색 결과: {}개", culturePlaces.size());
-                     allPlaces.addAll(culturePlaces);
-                     
-                     // 4. 박물관/전시관 검색 (축제와 연관성 높음)
                      List<ItineraryResponse.PlaceDto> museumPlaces = googlePlacesService.searchPlacesNearLocation(
                          "museum", 
                          "", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         500, // 5km 반경
-                         10    // 10개
+                         500, // 500m 반경
+                         1     // 박물관 1개만
                      );
-                     log.info("박물관/전시관 검색 결과: {}개", museumPlaces.size());
+                     log.info("박물관/미술관 검색 결과: {}개", museumPlaces.size());
                      allPlaces.addAll(museumPlaces);
                      
-                     // 5. 일반 관광지 검색 (더 많은 결과)
-                     List<ItineraryResponse.PlaceDto> generalFestivalPlaces = googlePlacesService.searchPlacesNearLocation(
+                     // 2. 키워드 기반 검색 (총 2개 제한)
+                     List<ItineraryResponse.PlaceDto> keywordPlaces = googlePlacesService.searchPlacesNearLocation(
                          "tourist_attraction", 
-                         "", 
+                         "공연 전시 문화", // 키워드로 검색
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         500, // 5km 반경
-                         25    // 25개로 증가
+                         500, // 500m 반경
+                         2     // 총 2개만
                      );
-                     log.info("일반 관광지 검색 결과: {}개", generalFestivalPlaces.size());
-                     allPlaces.addAll(generalFestivalPlaces);
+                     log.info("키워드 기반 문화시설 검색 결과: {}개", keywordPlaces.size());
+                     allPlaces.addAll(keywordPlaces);
                      
-                     // 6. 추가 문화시설 검색 (축제가 없을 때 대체)
-                     List<ItineraryResponse.PlaceDto> additionalCulturePlaces = googlePlacesService.searchPlacesNearLocation(
-                         "tourist_attraction", 
-                         "문화시설 전시관 갤러리", 
-                         station.getLatitude(), 
-                         station.getLongitude(), 
-                         500, // 5km 반경
-                         15    // 15개
-                     );
-                     log.info("추가 문화시설 검색 결과: {}개", additionalCulturePlaces.size());
-                     allPlaces.addAll(additionalCulturePlaces);
+                     // 3. 문화시설이 부족한 경우 음식점 검색량 증가
+                     int totalCulturePlaces = moviePlaces.size() + museumPlaces.size() + keywordPlaces.size();
+                     if (totalCulturePlaces < 2) {
+                         log.info("문화시설이 부족함 ({}개), 음식점 검색량 증가", totalCulturePlaces);
+                         // 음식점 검색량을 2배로 증가
+                         for (String foodType : request.getFoodType()) {
+                             if (!"카페".equals(foodType)) {
+                                 String searchKeyword = "";
+                                 switch (foodType) {
+                                     case "한식":
+                                         searchKeyword = "한식";
+                                         break;
+                                     case "중식":
+                                         searchKeyword = "중식";
+                                         break;
+                                     case "양식":
+                                         searchKeyword = "양식";
+                                         break;
+                                     case "일식":
+                                         searchKeyword = "일식";
+                                         break;
+                                     case "기타":
+                                         searchKeyword = "음식점";
+                                         break;
+                                     default:
+                                         searchKeyword = foodType;
+                                         break;
+                                 }
+                                 
+                                 List<ItineraryResponse.PlaceDto> extraFoodPlaces = googlePlacesService.searchPlacesNearLocation(
+                                     "restaurant", 
+                                     searchKeyword,
+                                     station.getLatitude(), 
+                                     station.getLongitude(), 
+                                     500, // 500m 반경
+                                     8     // 추가로 8개씩
+                                 );
+                                 log.info("{} 추가 검색 결과: {}개", foodType, extraFoodPlaces.size());
+                                 allPlaces.addAll(extraFoodPlaces);
+                             }
+                         }
+                     }
+                    
+                                 } else if ("자연/공원".equals(request.getCultureType())) {
+                     // 자연/공원인 경우 더 구체적인 검색
+                     log.info("자연/공원 타입 검색 시작");
                      
-                     // 7. 공원/광장 검색 (축제 개최지로 활용 가능)
+                     // 1. 공원 검색 (1개만)
                      List<ItineraryResponse.PlaceDto> parkPlaces = googlePlacesService.searchPlacesNearLocation(
                          "park", 
                          "", 
                          station.getLatitude(), 
                          station.getLongitude(), 
-                         500, // 5km 반경
-                         10    // 10개
+                         500, // 500m 반경
+                         1     // 공원 1개만
                      );
-                     log.info("공원/광장 검색 결과: {}개", parkPlaces.size());
+                     log.info("공원 검색 결과: {}개", parkPlaces.size());
                      allPlaces.addAll(parkPlaces);
+                     
+                     // 2. 자연 경관 검색 (1개만)
+                     List<ItineraryResponse.PlaceDto> naturePlaces = googlePlacesService.searchPlacesNearLocation(
+                         "natural_feature", 
+                         "", 
+                         station.getLatitude(), 
+                         station.getLongitude(), 
+                         500, // 500m 반경
+                         1     // 자연 경관 1개만
+                     );
+                     log.info("자연 경관 검색 결과: {}개", naturePlaces.size());
+                     allPlaces.addAll(naturePlaces);
+                     
+                     // 3. 자연시설이 부족한 경우 음식점 검색량 증가
+                     int totalNaturePlaces = parkPlaces.size() + naturePlaces.size();
+                     if (totalNaturePlaces < 2) {
+                         log.info("자연시설이 부족함 ({}개), 음식점 검색량 증가", totalNaturePlaces);
+                         // 음식점 검색량을 2배로 증가
+                         for (String foodType : request.getFoodType()) {
+                             if (!"카페".equals(foodType)) {
+                                 String searchKeyword = "";
+                                 switch (foodType) {
+                                     case "한식":
+                                         searchKeyword = "한식";
+                                         break;
+                                     case "중식":
+                                         searchKeyword = "중식";
+                                         break;
+                                     case "양식":
+                                         searchKeyword = "양식";
+                                         break;
+                                     case "일식":
+                                         searchKeyword = "일식";
+                                         break;
+                                     case "기타":
+                                         searchKeyword = "음식점";
+                                         break;
+                                     default:
+                                         searchKeyword = foodType;
+                                         break;
+                                 }
+                                 
+                                 List<ItineraryResponse.PlaceDto> extraFoodPlaces = googlePlacesService.searchPlacesNearLocation(
+                                     "restaurant", 
+                                     searchKeyword,
+                                     station.getLatitude(), 
+                                     station.getLongitude(), 
+                                     500, // 500m 반경
+                                     8     // 추가로 8개씩
+                                 );
+                                 log.info("{} 추가 검색 결과: {}개", foodType, extraFoodPlaces.size());
+                                 allPlaces.addAll(extraFoodPlaces);
+                             }
+                         }
+                     }
+                    
+                                 } else if ("체험".equals(request.getCultureType())) {
+                     // 체험인 경우 더 구체적인 검색
+                     log.info("체험 타입 검색 시작");
+                     
+                     // 1. 체험 시설 검색 (1개만)
+                     List<ItineraryResponse.PlaceDto> experiencePlaces = googlePlacesService.searchPlacesNearLocation(
+                         "tourist_attraction", 
+                         "체험", 
+                         station.getLatitude(), 
+                         station.getLongitude(), 
+                         500, // 500m 반경
+                         1     // 체험 시설 1개만
+                     );
+                     log.info("체험 시설 검색 결과: {}개", experiencePlaces.size());
+                     allPlaces.addAll(experiencePlaces);
+                     
+                     // 2. 키워드 기반 검색 (체험, 만들기, DIY 등) (1개만)
+                     List<ItineraryResponse.PlaceDto> keywordExperiencePlaces = googlePlacesService.searchPlacesNearLocation(
+                         "tourist_attraction", 
+                         "체험 만들기 DIY", 
+                         station.getLatitude(), 
+                         station.getLongitude(), 
+                         500, // 500m 반경
+                         1     // 1개만
+                     );
+                     log.info("키워드 기반 체험시설 검색 결과: {}개", keywordExperiencePlaces.size());
+                     allPlaces.addAll(keywordExperiencePlaces);
+                     
+                     // 3. 체험시설이 부족한 경우 음식점 검색량 증가
+                     int totalExperiencePlaces = experiencePlaces.size() + keywordExperiencePlaces.size();
+                     if (totalExperiencePlaces < 2) {
+                         log.info("체험시설이 부족함 ({}개), 음식점 검색량 증가", totalExperiencePlaces);
+                         // 음식점 검색량을 2배로 증가
+                         for (String foodType : request.getFoodType()) {
+                             if (!"카페".equals(foodType)) {
+                                 String searchKeyword = "";
+                                 switch (foodType) {
+                                     case "한식":
+                                         searchKeyword = "한식";
+                                         break;
+                                     case "중식":
+                                         searchKeyword = "중식";
+                                         break;
+                                     case "양식":
+                                         searchKeyword = "양식";
+                                         break;
+                                     case "일식":
+                                         searchKeyword = "일식";
+                                         break;
+                                     case "기타":
+                                         searchKeyword = "음식점";
+                                         break;
+                                     default:
+                                         searchKeyword = foodType;
+                                         break;
+                                 }
+                                 
+                                 List<ItineraryResponse.PlaceDto> extraFoodPlaces = googlePlacesService.searchPlacesNearLocation(
+                                     "restaurant", 
+                                     searchKeyword,
+                                     station.getLatitude(), 
+                                     station.getLongitude(), 
+                                     500, // 500m 반경
+                                     8     // 추가로 8개씩
+                                 );
+                                 log.info("{} 추가 검색 결과: {}개", foodType, extraFoodPlaces.size());
+                                 allPlaces.addAll(extraFoodPlaces);
+                             }
+                         }
+                     }
+                    
+                                 } else if ("지역축제".equals(request.getCultureType())) {
+                     // 지역축제인 경우 더 구체적인 검색
+                     log.info("지역축제 타입 검색 시작");
+                     
+                     // 1. 축제 관련 검색 (1개만)
+                     List<ItineraryResponse.PlaceDto> festivalPlaces = googlePlacesService.searchPlacesNearLocation(
+                         "tourist_attraction", 
+                         "축제", 
+                         station.getLatitude(), 
+                         station.getLongitude(), 
+                         500, // 500m 반경
+                         1     // 축제 관련 1개만
+                     );
+                     log.info("축제 관련 검색 결과: {}개", festivalPlaces.size());
+                     allPlaces.addAll(festivalPlaces);
+                     
+                     // 2. 문화/전통 관련 검색 (1개만)
+                     List<ItineraryResponse.PlaceDto> culturePlaces = googlePlacesService.searchPlacesNearLocation(
+                         "tourist_attraction", 
+                         "문화 전통", 
+                         station.getLatitude(), 
+                         station.getLongitude(), 
+                         500, // 500m 반경
+                         1     // 1개만
+                     );
+                     log.info("문화/전통 관련 검색 결과: {}개", culturePlaces.size());
+                     allPlaces.addAll(culturePlaces);
+                     
+                     // 3. 지역축제시설이 부족한 경우 음식점 검색량 증가
+                     int totalFestivalPlaces = festivalPlaces.size() + culturePlaces.size();
+                     if (totalFestivalPlaces < 2) {
+                         log.info("지역축제시설이 부족함 ({}개), 음식점 검색량 증가", totalFestivalPlaces);
+                         // 음식점 검색량을 2배로 증가
+                         for (String foodType : request.getFoodType()) {
+                             if (!"카페".equals(foodType)) {
+                                 String searchKeyword = "";
+                                 switch (foodType) {
+                                     case "한식":
+                                         searchKeyword = "한식";
+                                         break;
+                                     case "중식":
+                                         searchKeyword = "중식";
+                                         break;
+                                     case "양식":
+                                         searchKeyword = "양식";
+                                         break;
+                                     case "일식":
+                                         searchKeyword = "일식";
+                                         break;
+                                     case "기타":
+                                         searchKeyword = "음식점";
+                                         break;
+                                     default:
+                                         searchKeyword = foodType;
+                                         break;
+                                 }
+                                 
+                                 List<ItineraryResponse.PlaceDto> extraFoodPlaces = googlePlacesService.searchPlacesNearLocation(
+                                     "restaurant", 
+                                     searchKeyword,
+                                     station.getLatitude(), 
+                                     station.getLongitude(), 
+                                     500, // 500m 반경
+                                     8     // 추가로 8개씩
+                                 );
+                                 log.info("{} 추가 검색 결과: {}개", foodType, extraFoodPlaces.size());
+                                 allPlaces.addAll(extraFoodPlaces);
+                             }
+                         }
+                     }
                     
                 } else {
                     // 기타 문화 타입 (기타, 또는 새로운 타입)
@@ -573,21 +626,20 @@ public class StationBasedCourseService {
         
         log.info("균형잡힌 선택 모드: 음식점 {}개, 문화시설 {}개", foodPlaces.size(), culturePlaces.size());
         
-        // 음식점 1-2개, 문화시설 2-3개로 구성
+        // 음식점 3개, 문화시설 2개로 구성 (3:2 비율)
         List<ItineraryResponse.PlaceDto> balancedPlaces = new ArrayList<>();
         
-        // 음식점 1-2개 선택 (평점 높은 순)
+        // 음식점 3개 선택 (평점 높은 순)
         List<ItineraryResponse.PlaceDto> selectedFood = foodPlaces.stream()
             .sorted((a, b) -> Double.compare(b.getRating(), a.getRating()))
-            .limit(2)
+            .limit(3)
             .collect(java.util.stream.Collectors.toList());
         balancedPlaces.addAll(selectedFood);
         
-        // 문화시설 2-3개 선택 (평점 높은 순)
-        int cultureCount = 4 - selectedFood.size(); // 남은 자리만큼
+        // 문화시설 2개 선택 (평점 높은 순)
         List<ItineraryResponse.PlaceDto> selectedCulture = culturePlaces.stream()
             .sorted((a, b) -> Double.compare(b.getRating(), a.getRating()))
-            .limit(cultureCount)
+            .limit(2)
             .collect(java.util.stream.Collectors.toList());
         balancedPlaces.addAll(selectedCulture);
         

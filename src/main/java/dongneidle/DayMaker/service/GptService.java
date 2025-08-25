@@ -96,7 +96,7 @@ public class GptService {
         prompt.append("3. 교통수단을 고려한 접근성\n");
         prompt.append("4. 음식 타입과 문화시설의 균형잡힌 선택 (반드시 포함해야 함)\n");
         prompt.append("5. 장소 유형의 다양성 (음식점, 카페, 문화시설 등)\n");
-        prompt.append("6. 지역축제 요청 시: 음식점 1-2개 + 문화시설 2-3개로 구성\n");
+        prompt.append("6. 지역축제 요청 시: 음식점 2-3개 + 문화시설 1-2개로 구성\n");
         prompt.append("7. 음식점이 없으면 안됨! 반드시 음식점과 문화시설을 모두 포함\n\n");
         prompt.append("장소 목록:\n");
         
