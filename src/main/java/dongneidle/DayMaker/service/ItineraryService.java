@@ -77,14 +77,14 @@ public class ItineraryService {
                 var station = stationOpt.get();
                 searchLat = station.getLatitude();
                 searchLng = station.getLongitude();
-                searchRadius = 2000; // 역 기준 2km 반경
+                searchRadius = 1000; // 역 기준 2km 반경
                 log.info("역 기준 검색: {}역 (위도: {}, 경도: {}), 반경: {}m", 
                         station.getName(), searchLat, searchLng, searchRadius);
             } else {
                 log.warn("선택된 역을 찾을 수 없음: {}, 기본 좌표 사용", request.getSelectedStation());
                 searchLat = 37.3942; // 기본: 안양시 중심
                 searchLng = 126.9569;
-                searchRadius = 10000; // 기본: 10km
+                searchRadius = 1000; // 기본: 10km
             }
         } else {
             // 역을 선택하지 않은 경우 기본값 사용
